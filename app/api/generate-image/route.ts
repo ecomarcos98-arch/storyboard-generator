@@ -21,14 +21,15 @@ export async function POST(req: NextRequest) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${process.env.GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseModalities: ["TEXT", "IMAGE"],
+            instances: [{ prompt }],
+            parameters: {
+              sampleCount: 1,
+              aspectRatio: "16:9",
             },
           }),
         }
@@ -43,10 +44,9 @@ export async function POST(req: NextRequest) {
       }
 
       const data = await response.json();
-      const parts = data.candidates?.[0]?.content?.parts || [];
-      const imagePart = parts.find((p: { inlineData?: { data: string; mimeType: string } }) => p.inlineData);
+      const prediction = data.predictions?.[0];
 
-      if (!imagePart?.inlineData) {
+      if (!prediction?.bytesBase64Encoded) {
         lastError = "No image in response";
         if (attempt < MAX_RETRIES) await sleep(DELAY_MS);
         continue;
@@ -54,8 +54,8 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         segmentNumber,
-        imageBase64: imagePart.inlineData.data,
-        mimeType: imagePart.inlineData.mimeType || "image/png",
+        imageBase64: prediction.bytesBase64Encoded,
+        mimeType: prediction.mimeType || "image/png",
       });
     } catch (error: unknown) {
       lastError = String(error);

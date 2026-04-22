@@ -21,9 +21,10 @@ export async function POST(req: NextRequest) {
       zip.file(filename, buffer);
     }
 
-    const zipBuffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    const zipUint8 = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    const blob = new Blob([zipUint8], { type: "application/zip" });
 
-    return new NextResponse(zipBuffer, {
+    return new NextResponse(blob, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
