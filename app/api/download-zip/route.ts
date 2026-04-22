@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
     }
 
     const zipUint8 = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
-    const blob = new Blob([zipUint8], { type: "application/zip" });
+    const arrayBuffer = zipUint8.buffer.slice(zipUint8.byteOffset, zipUint8.byteOffset + zipUint8.byteLength) as ArrayBuffer;
+    const blob = new Blob([arrayBuffer], { type: "application/zip" });
 
     return new NextResponse(blob, {
       status: 200,
