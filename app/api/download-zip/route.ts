@@ -21,14 +21,13 @@ export async function POST(req: NextRequest) {
       zip.file(filename, buffer);
     }
 
-    const zipBuffer = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+    const zipBuffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
 
     return new NextResponse(zipBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": 'attachment; filename="storyboard.zip"',
-        "Content-Length": String(zipBuffer.length),
       },
     });
   } catch (error: unknown) {
